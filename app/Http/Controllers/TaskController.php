@@ -80,7 +80,7 @@ class TaskController extends Controller
 
         $task->update($data);
 
-        return redirect()->route('tasks.userTask', ['user' => Auth::id()])
+        return redirect()->route('tasks.index')
             ->with('success', 'Task updated successfully.');
     }
 }

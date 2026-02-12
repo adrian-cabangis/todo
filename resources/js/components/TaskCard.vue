@@ -80,8 +80,6 @@ const priorityMap: Record<string, number> = {
                 </span>
                 <span class="capitalize">{{ task.priority }}</span>
             </span>
-
-            <slot name="actions"></slot>
         </div>
     </div>
 </template>
