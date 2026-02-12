@@ -84,7 +84,7 @@ const submitUpdate = () => {
                     <h1 class="text-3xl font-bold text-gray-800">My Tasks</h1>
                     <button
                         @click="addTaskModal = true"
-                        class="h-12 cursor-pointer rounded-xl bg-white px-4 shadow-sm hover:scale-105 hover:shadow-lg"
+                        class="h-12 cursor-pointer rounded-xl bg-white px-4 font-bold shadow-sm hover:scale-105 hover:shadow-lg"
                     >
                         Add task +
                     </button>
@@ -117,7 +117,7 @@ const submitUpdate = () => {
                                 <template #actions>
                                     <button
                                         @click="handleUpdate(task)"
-                                        class="rounded-full p-1 text-xl hover:bg-gray-200"
+                                        class="cursor-pointer rounded-full p-1 text-xl hover:bg-gray-200"
                                     >
                                         ✎
                                     </button>
@@ -226,13 +226,13 @@ const submitUpdate = () => {
                 <div class="flex justify-end gap-3">
                     <button
                         type="submit"
-                        class="rounded-md bg-blue-700 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+                        class="cursor-pointer rounded-md bg-blue-700 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-800"
                     >
                         Add Task
                     </button>
                     <button
                         @click="addTaskModal = false"
-                        class="mr-2 cursor-pointer rounded-md border px-4 py-2"
+                        class="mr-2 cursor-pointer rounded-md border px-4 py-2 hover:bg-gray-100"
                     >
                         Cancel
                     </button>
@@ -372,7 +372,7 @@ const submitUpdate = () => {
                                 form.reset();
                             }
                         "
-                        class="rounded-md border px-4 py-2"
+                        class="cursor-pointer rounded-md border px-4 py-2 hover:bg-gray-100"
                     >
                         Cancel
                     </button>

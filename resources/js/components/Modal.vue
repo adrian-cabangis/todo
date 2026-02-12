@@ -34,7 +34,7 @@ function close() {
                     </h2>
                     <button
                         @click="close"
-                        class="text-lg font-bold text-gray-400 hover:text-gray-800"
+                        class="cursor-pointer text-lg font-bold text-gray-400 hover:text-gray-800"
                     >
                         &times;
                     </button>

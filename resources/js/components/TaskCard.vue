@@ -16,9 +16,10 @@ const priorityMap: Record<string, number> = {
     <div
         class="flex h-full transform flex-col justify-between rounded-xl border-l-8 bg-white p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl"
         :class="{
-            'border-red-500': task.priority === 'high',
-            'border-yellow-500': task.priority === 'medium',
-            'border-green-500': task.priority === 'low',
+            'border-yellow-600': task.status === 'pending',
+            'border-blue-600': task.status === 'ongoing',
+            'border-green-600': task.status === 'completed',
+            'border-red-600': task.status === 'cancelled',
         }"
     >
         <!-- Header -->
@@ -69,7 +70,7 @@ const priorityMap: Record<string, number> = {
 
             <span class="flex items-center gap-2">
                 <span
-                    class="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white"
+                    class="flex h-6 w-6 items-center justify-center rounded-full font-bold text-white"
                     :class="{
                         'bg-red-500': task.priority === 'high',
                         'bg-yellow-500': task.priority === 'medium',
