@@ -8,7 +8,9 @@ import { type BreadcrumbItem, Task } from '@/types';
 import { ref, computed } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'My Task', href: dashboard().url },
+    {
+        title: 'My Task',
+    },
 ];
 
 const props = defineProps<{

@@ -5,12 +5,11 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem, Task } from '@/types';
 import { computed, ref } from 'vue';
 import Modal from '@/components/Modal.vue';
-import TaskCard from '@/components/TaskCard.vue'; // make sure this points to your card component
+import TaskCard from '@/components/TaskCard.vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'All Task',
-        href: dashboard().url,
     },
 ];
 
