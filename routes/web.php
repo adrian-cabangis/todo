@@ -20,6 +20,8 @@ Route::get('/about', function (){
 });
 
 Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+Route::post('/tasks', [TaskController::class, 'store'])->name('task.store');
 Route::get('/tasks/{user}', [TaskController::class, 'userTask'])->name('tasks.userTask');
+Route::post('/tasks/{user}', [TaskController::class, 'userStore'])->name('tasks.userStore');
 
 require __DIR__.'/settings.php';

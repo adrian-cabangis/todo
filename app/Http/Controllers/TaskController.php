@@ -22,11 +22,11 @@ class TaskController extends Controller
     public function userTask(User $user)
     {
         if ($user->id !== Auth::id()) {
-            throw new Exception("You dont have the rights to access others tasks");
+            throw new Exception("You dont have the permission to access these tasks");
         }
 
         $tasks = Task::with(['user'])->where('user_id', $user->id)->get();
-        return Inertia::render('Task/Index', [
+        return Inertia::render('MyTask/Index', [
             'tasks' => $tasks
         ]);
     }
@@ -37,17 +37,39 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'string|nullable',
             'deadline' => 'nullable|date',
-            'priority' => 'enum|nullable|in:low,medium,high',
+            'priority' => 'nullable|in:low,medium,high',
         ]);
+
+        $data['user_id'] = Auth::id();
 
         $task = Task::create($data);
 
         return redirect()->route('tasks.index')
-            ->with('success', 'User created successfully.');
+            ->with('success', 'Task created successfully.');
     }
 
-    public function update(Request $request)
+    public function userStore(Request $request)
     {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'string|nullable',
+            'deadline' => 'nullable|date',
+            'priority' => 'nullable|in:low,medium,high',
+        ]);
+
+        $data['user_id'] = Auth::id();
+
+        $task = Task::create($data);
+
+        return redirect()->route('tasks.userTask', [ 'user' => Auth::id()])
+            ->with('success', 'Task created successfully.');
+    }
+
+    public function update(Request $request, Task $task)
+    {
+        if ($task->user_id !== Auth::id()) {
+            throw new Exception("You dont have the permission to update this task");
+        }
         $data = $request->validate([
             'title' => 'nullable|string|max:255',
             'description' => 'nullable',
@@ -56,9 +78,9 @@ class TaskController extends Controller
             'priority' => 'nullable|in:low,medium,high',
         ]);
 
-        
+        $task->update($data);
 
         return redirect()->route('tasks.index')
-            ->with('success', 'User created successfully.');
+            ->with('success', 'Task updated successfully.');
     }
 }
