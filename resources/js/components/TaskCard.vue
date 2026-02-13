@@ -28,11 +28,11 @@ const isOverdue = computed(() => {
     <div
         :class="[
             'flex h-full transform flex-col justify-between rounded-xl border-l-8 p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl',
-            task.status === 'pending' ? 'border-yellow-600' : '',
-            task.status === 'ongoing' ? 'border-blue-600' : '',
-            task.status === 'completed' ? 'border-green-600' : '',
-            task.status === 'cancelled' ? 'border-red-600' : '',
-            isOverdue ? 'border-red-600 bg-red-50' : 'bg-white',
+            task.status === 'pending' ? 'border-green-600' : '',
+            task.status === 'ongoing' ? 'border-green-700' : '',
+            task.status === 'completed' ? 'border-green-800' : '',
+            task.status === 'cancelled' ? 'border-gray-900' : '',
+            isOverdue ? 'border-red-200 bg-red-50/50' : 'bg-white',
         ]"
     >
         <div class="mb-3 flex items-center justify-between">
@@ -48,12 +48,14 @@ const isOverdue = computed(() => {
                 <span
                     class="rounded-full px-3 py-1 text-xs font-semibold capitalize"
                     :class="{
-                        'bg-yellow-100 text-yellow-800':
+                        'bg-green-100 text-green-700':
                             task.status === 'pending',
-                        'bg-blue-100 text-blue-800': task.status === 'ongoing',
                         'bg-green-100 text-green-800':
+                            task.status === 'ongoing',
+                        'bg-green-100 text-green-900':
                             task.status === 'completed',
-                        'bg-red-100 text-red-800': task.status === 'cancelled',
+                        'bg-green-100 text-gray-900':
+                            task.status === 'cancelled',
                     }"
                 >
                     {{ task.status }}
@@ -94,9 +96,9 @@ const isOverdue = computed(() => {
                 <span
                     class="flex h-6 w-6 items-center justify-center rounded-full font-bold text-white"
                     :class="{
-                        'bg-red-500': task.priority === 'high',
-                        'bg-yellow-500': task.priority === 'medium',
-                        'bg-green-500': task.priority === 'low',
+                        'bg-green-900': task.priority === 'high',
+                        'bg-green-600': task.priority === 'medium',
+                        'bg-green-400': task.priority === 'low',
                     }"
                 >
                     {{ priorityMap[task.priority] }}

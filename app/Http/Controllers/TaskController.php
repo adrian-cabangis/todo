@@ -78,7 +78,7 @@ class TaskController extends Controller
             'deadline' => 'nullable|date',
             'status' => 'nullable|in:pending,ongoing,completed,cancelled',
             'priority' => 'nullable|in:low,medium,high',
-            'user_id' => 'nullable|exists:users,id', // allow reassignment
+            'user_id' => 'nullable|exists:users,id', 
         ]);
 
         $task->update($data);

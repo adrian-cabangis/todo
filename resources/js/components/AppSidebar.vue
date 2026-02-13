@@ -16,48 +16,39 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import AppLogo from './AppLogo.vue';
-import { computed } from 'vue';
 
 const page = usePage();
 
-const mainNavItems = computed<NavItem[]>(() => {
-    const user = page.props.auth.user;
+const user = page.props.auth.user;
 
-    return [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-            icon: LayoutGrid,
-        },
-        {
-            title: 'About',
-            href: '/about',
-            icon: LayoutGrid,
-        },
-        {
-            title: 'All Tasks',
-            href: '/tasks',
-            icon: LayoutGrid,
-        },
-        {
-            title: 'My Tasks',
-            href: `/tasks/${user.id}`,
-            icon: LayoutGrid,
-        },
-    ];
-});
-const footerNavItems: NavItem[] = [
+const mainNavItems: NavItem[] = [
     {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
+        title: 'Dashboard',
+        href: dashboard(),
+        icon: LayoutGrid,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
+        title: 'About',
+        href: '/about',
+        icon: LayoutGrid,
+    },
+    ...(user.role !== 'user'
+        ? [
+              {
+                  title: 'All Tasks',
+                  href: '/tasks',
+                  icon: LayoutGrid,
+              },
+          ]
+        : []),
+    {
+        title: 'My Tasks',
+        href: `/tasks/${user.id}`,
+        icon: LayoutGrid,
     },
 ];
+
+const footerNavItems: NavItem[] = [];
 </script>
 
 <template>
