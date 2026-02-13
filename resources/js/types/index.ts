@@ -20,7 +20,7 @@ export interface Task {
     description: string;
     deadline: string;
     status: string;
-    priority: string; 
-
+    priority: string;
+    role: 'admin' | 'user';
     user?: User;
 }

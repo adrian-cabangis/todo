@@ -14,8 +14,10 @@ class TaskController extends Controller
     public function index()
     {
         $tasks = Task::with(['user'])->get();
+        $users = User::all();
         return Inertia::render('Task/Index', [
-            'tasks' => $tasks
+            'tasks' => $tasks,
+            'users' => $users,
         ]);
     }
 
@@ -38,14 +40,13 @@ class TaskController extends Controller
             'description' => 'string|nullable',
             'deadline' => 'nullable|date',
             'priority' => 'nullable|in:low,medium,high',
+            'user_id' => 'required|exists:users,id'
         ]);
-
-        $data['user_id'] = Auth::id();
 
         $task = Task::create($data);
 
         return redirect()->route('tasks.index')
-            ->with('success', 'Task created successfully.');
+            ->with('success', 'Task assigned successfully.');
     }
 
     public function userStore(Request $request)
@@ -66,6 +67,27 @@ class TaskController extends Controller
     }
 
     public function update(Request $request, Task $task)
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'deadline' => 'nullable|date',
+            'status' => 'nullable|in:pending,ongoing,completed,cancelled',
+            'priority' => 'nullable|in:low,medium,high',
+            'user_id' => 'nullable|exists:users,id', // allow reassignment
+        ]);
+
+        $task->update($data);
+
+        return redirect()->route('tasks.index')
+            ->with('success', 'Task updated successfully.');
+    }
+
+    public function userUpdate(Request $request, Task $task)
     {
         if ($task->user_id !== Auth::id()) {
             throw new Exception("You dont have the permission to update this task");
