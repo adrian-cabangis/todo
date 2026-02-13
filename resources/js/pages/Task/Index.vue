@@ -14,6 +14,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const props = defineProps<{
     tasks: Task[];
+    users: {
+        id: number;
+        name: string;
+    }[];
 }>();
 const addTaskModal = ref(false);
 const updateTaskModal = ref(false);
@@ -24,7 +28,7 @@ const addForm = useForm({
     description: '',
     deadline: '',
     priority: '',
-    user_id: 0,
+    user_id: null as number | null,
 });
 
 const updateForm = useForm({
@@ -32,7 +36,7 @@ const updateForm = useForm({
     description: '',
     deadline: '',
     priority: '',
-    user_id: 0,
+    user_id: null as number | null,
     status: 'pending',
 });
 
@@ -67,7 +71,7 @@ const handleUpdate = (task: Task) => {
 const submitUpdate = () => {
     if (!currentTask.value) return;
 
-    updateForm.put(`/tasks/${currentTask.value.id}`, {
+    updateForm.put(`/tasks/${currentTask.value.id}/admin`, {
         onSuccess: () => {
             updateTaskModal.value = false;
             currentTask.value = null;
@@ -132,6 +136,37 @@ const submitUpdate = () => {
         <Modal v-model="addTaskModal">
             <template #title> Create new task </template>
             <form @submit.prevent="submitTask" class="space-y-4">
+                <!-- Assign To -->
+                <div>
+                    <label
+                        for="user"
+                        class="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                        Assign To
+                    </label>
+                    <select
+                        id="user"
+                        v-model="addForm.user_id"
+                        class="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-blue-500"
+                    >
+                        <option value="">Select User</option>
+                        <option
+                            v-for="user in props.users"
+                            :key="user.id"
+                            :value="user.id"
+                        >
+                            {{ user.name }}
+                        </option>
+                    </select>
+
+                    <p
+                        v-if="addForm.errors.user_id"
+                        class="mt-1 text-sm text-red-500"
+                    >
+                        {{ addForm.errors.user_id }}
+                    </p>
+                </div>
+
                 <!-- Title -->
                 <div>
                     <label
@@ -241,6 +276,37 @@ const submitUpdate = () => {
         <Modal v-model="updateTaskModal">
             <template #title> Update Task </template>
             <form @submit.prevent="submitUpdate" class="space-y-4">
+                <!-- Assign To -->
+                <div>
+                    <label
+                        for="user"
+                        class="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                        Assign To
+                    </label>
+                    <select
+                        id="user"
+                        v-model="updateForm.user_id"
+                        class="w-full rounded-md border border-gray-300 p-2 focus:border-blue-500 focus:ring-blue-500"
+                    >
+                        <option value="">Select User</option>
+                        <option
+                            v-for="user in props.users"
+                            :key="user.id"
+                            :value="user.id"
+                        >
+                            {{ user.name }}
+                        </option>
+                    </select>
+
+                    <p
+                        v-if="updateForm.errors.user_id"
+                        class="mt-1 text-sm text-red-500"
+                    >
+                        {{ updateForm.errors.user_id }}
+                    </p>
+                </div>
+
                 <!-- Title -->
                 <div>
                     <label
