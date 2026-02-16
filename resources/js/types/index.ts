@@ -22,5 +22,17 @@ export interface Task {
     status: string;
     priority: string;
     role: 'admin' | 'user';
+    created_at: string;
     user?: User;
+    attachments: Attachment[];
+}
+
+export interface Attachment {
+    id: number;
+    task_id: number;
+    filename: string;
+    filepath: string;
+    mimetype: string;
+    size: number;
+    task?: Task;
 }

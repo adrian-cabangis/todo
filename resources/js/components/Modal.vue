@@ -23,25 +23,25 @@ function close() {
 
             <!-- Modal Content -->
             <div
-                class="relative z-50 w-full max-w-md rounded-xl bg-green-100 p-6 shadow-2xl"
+                class="relative z-50 w-full max-w-xl rounded-2xl bg-gray-100 p-7 shadow-2xl"
             >
                 <!-- Header -->
                 <div
-                    class="mb-6 flex items-center justify-between border-b border-green-400 pb-2"
+                    class="mb-4 flex items-center justify-between border-b border-gray-400 pb-4"
                 >
-                    <h2 class="text-xl font-semibold text-green-900">
+                    <h2 class="text-xl font-semibold text-gray-900">
                         <slot name="title">Modal Title</slot>
                     </h2>
                     <button
                         @click="close"
-                        class="cursor-pointer text-lg font-bold text-gray-400 hover:text-gray-800"
+                        class="cursor-pointer text-lg font-bold text-gray-600 hover:text-gray-800"
                     >
                         &times;
                     </button>
                 </div>
 
                 <!-- Body -->
-                <div class="space-y-4 text-green-900">
+                <div class="space-y-4 text-gray-900">
                     <slot>
                         <!-- Default content goes here -->
                     </slot>

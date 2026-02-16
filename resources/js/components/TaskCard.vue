@@ -26,6 +26,7 @@ const isOverdue = computed(() => {
 
 <template>
     <div
+        class="cursor-pointer"
         :class="[
             'flex h-full transform flex-col justify-between rounded-xl border-l-8 p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-2xl',
             task.status === 'pending' ? 'border-green-600' : '',
@@ -37,11 +38,11 @@ const isOverdue = computed(() => {
     >
         <div class="mb-3 flex items-center justify-between">
             <div>
-                <h2 class="text-sm font-semibold text-gray-500">
-                    {{ task.user?.email }}
-                </h2>
                 <h2 class="text-lg font-bold text-gray-800">
                     {{ task.title }}
+                </h2>
+                <h2 class="text-sm font-semibold text-gray-500">
+                    {{ task.user?.email }}
                 </h2>
             </div>
             <div class="flex items-center gap-2">
@@ -68,11 +69,6 @@ const isOverdue = computed(() => {
                 </span>
             </div>
         </div>
-
-        <div class="mb-4 text-sm text-gray-600">
-            {{ task.description }}
-        </div>
-
         <div
             class="mt-auto flex items-center justify-between text-sm text-gray-500"
         >

@@ -7,17 +7,22 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class TaskController extends Controller
 {
     public function index()
     {
-        $tasks = Task::with(['user'])->get();
-        $users = User::all();
+        $tasks = Task::with(['user', 'attachments'])->get();
+        $tasks->each(function ($task) {
+            $task->attachments->each(function ($att) {
+                $att->filepath = Storage::url($att->filepath);
+            });
+        });
         return Inertia::render('Task/Index', [
             'tasks' => $tasks,
-            'users' => $users,
+            'users' => User::all()
         ]);
     }
 
@@ -27,7 +32,7 @@ class TaskController extends Controller
             throw new Exception("You dont have the permission to access these tasks");
         }
 
-        $tasks = Task::with(['user'])->where('user_id', $user->id)->get();
+        $tasks = Task::with(['user', 'attachments'])->where('user_id', $user->id)->get();
         return Inertia::render('MyTask/Index', [
             'tasks' => $tasks
         ]);
@@ -35,15 +40,29 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'string|nullable',
-            'deadline' => 'nullable|date',
-            'priority' => 'nullable|in:low,medium,high',
-            'user_id' => 'required|exists:users,id'
+            'description' => 'string|nullable', 
+            'deadline' => 'required|date',
+            'priority' => 'required|in:low,medium,high',
+            'user_id' => 'required|exists:users,id',
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,docx|max:5120'
         ]);
 
-        $task = Task::create($data);
+        $task = Task::create($validated);
+
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('attachments', 'public');
+                $task->attachments()->create([
+                    'filename' => $file->getClientOriginalName(),
+                    'filepath' => $path,
+                    'mimetype' => $file->getClientMimeType(),
+                    'size' => $file->getSize(),
+                ]);
+            }
+        }
 
         return redirect()->route('tasks.index')
             ->with('success', 'Task assigned successfully.');
@@ -54,13 +73,26 @@ class TaskController extends Controller
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'string|nullable',
-            'deadline' => 'nullable|date',
-            'priority' => 'nullable|in:low,medium,high',
+            'deadline' => 'required|date',
+            'priority' => 'required|in:low,medium,high',
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,docx|max:5120'
         ]);
 
         $data['user_id'] = Auth::id();
 
         $task = Task::create($data);
+
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('attachments', 'public');
+                $task->attachments()->create([
+                    'filename' => $file->getClientOriginalName(),
+                    'filepath' => $path,
+                    'mimetype' => $file->getClientMimeType(),
+                    'size' => $file->getSize(),
+                ]);
+            }
+        }
 
         return redirect()->route('tasks.userTask', [ 'user' => Auth::id()])
             ->with('success', 'Task created successfully.');

@@ -15,7 +15,7 @@ return new class extends Migration
         // Title, Description, Deadline, Priority, Status
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(User::class)->constrained()->onDelete('cascade');
+            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
             $table->dateTime('deadline');
