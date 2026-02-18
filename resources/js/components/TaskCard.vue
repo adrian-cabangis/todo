@@ -33,7 +33,7 @@ const isOverdue = computed(() => {
             task.status === 'ongoing' ? 'border-green-700' : '',
             task.status === 'completed' ? 'border-green-800' : '',
             task.status === 'cancelled' ? 'border-gray-900' : '',
-            isOverdue ? 'border-red-200 bg-red-50/50' : 'bg-white',
+            isOverdue ? 'bg-red-50' : 'bg-white',
         ]"
     >
         <div class="mb-3 flex items-center justify-between">
@@ -42,7 +42,7 @@ const isOverdue = computed(() => {
                     {{ task.title }}
                 </h2>
                 <h2 class="text-sm font-semibold text-gray-500">
-                    {{ task.user?.email }}
+                    {{ task.user?.name }}
                 </h2>
             </div>
             <div class="flex items-center gap-2">
@@ -55,7 +55,7 @@ const isOverdue = computed(() => {
                             task.status === 'ongoing',
                         'bg-green-100 text-green-900':
                             task.status === 'completed',
-                        'bg-green-100 text-gray-900':
+                        'bg-gray-100 text-gray-900':
                             task.status === 'cancelled',
                     }"
                 >
@@ -63,17 +63,16 @@ const isOverdue = computed(() => {
                 </span>
                 <span
                     v-if="isOverdue"
-                    class="rounded-full bg-red-200 px-2 py-1 text-xs font-semibold text-red-800"
+                    class="rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-500"
                 >
                     Overdue
                 </span>
             </div>
         </div>
         <div
-            class="mt-auto flex items-center justify-between text-sm text-gray-500"
+            class="mt-auto flex items-center justify-between gap-6 text-sm text-gray-500"
         >
             <span>
-                📅
                 {{
                     task.deadline
                         ? new Date(task.deadline).toLocaleString('en-US', {

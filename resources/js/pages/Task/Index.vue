@@ -21,6 +21,13 @@ const updateTaskModal = ref(false);
 const openTaskModal = ref(false);
 const isExpanded = ref(false);
 const currentTask = ref<Task | null>(null);
+const updateAttachments = ref<
+    {
+        file: File;
+        url: string;
+        isImage: boolean;
+    }[]
+>([]);
 
 const addForm = useForm<{
     title: string;
@@ -38,13 +45,24 @@ const addForm = useForm<{
     attachments: [],
 });
 
-const updateForm = useForm({
+const updateForm = useForm<{
+    title: string;
+    description: string;
+    deadline: string;
+    priority: string;
+    user_id: number | null;
+    status: string;
+    attachments: File[];
+    deleted_attachments: number[];
+}>({
     title: '',
     description: '',
     deadline: '',
     priority: '',
-    user_id: null as number | null,
+    user_id: null,
     status: 'pending',
+    attachments: [],
+    deleted_attachments: [],
 });
 
 const submitTask = () => {
@@ -75,19 +93,21 @@ const handleUpdate = (task: Task) => {
     updateTaskModal.value = true;
 };
 
-const submitUpdate = () => {
+function submitUpdate() {
     if (!currentTask.value) return;
 
-    updateForm.put(`/tasks/${currentTask.value.id}/admin`, {
+    console.log(updateForm);
+
+    updateForm.post(`/tasks/${currentTask.value.id}/admin`, {
+        forceFormData: true, // required for files
         onSuccess: () => {
             updateTaskModal.value = false;
             currentTask.value = null;
-        },
-        onError: (errors) => {
-            console.log(errors);
+            updateForm.reset();
+            updateAttachments.value = [];
         },
     });
-};
+}
 
 const openTask = (task: Task) => {
     currentTask.value = task;
@@ -98,16 +118,101 @@ watch(openTaskModal, (val) => {
     if (!val) isExpanded.value = false;
 });
 
+watch(addTaskModal, (val) => {
+    if (!val) {
+        newAddAttachments.value.forEach((att) => URL.revokeObjectURL(att.url));
+        newAddAttachments.value = [];
+        addForm.reset();
+    }
+});
+
+watch(updateTaskModal, (val) => {
+    if (!val) {
+        updateAttachments.value.forEach((att) => URL.revokeObjectURL(att.url));
+        updateAttachments.value = [];
+        currentTask.value = null;
+        updateForm.reset();
+    }
+});
+
 function capitalize(str?: string) {
     return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 }
 
+const newAddAttachments = ref<{ file: File; url: string; isImage: boolean }[]>(
+    [],
+);
+
 function handleFiles(e: Event) {
     const input = e.currentTarget as HTMLInputElement;
-
     if (!input.files) return;
 
-    addForm.attachments = Array.from(input.files);
+    const filesArray = Array.from(input.files);
+
+    filesArray.forEach((file) => {
+        newAddAttachments.value.push({
+            file,
+            url: URL.createObjectURL(file),
+            isImage: file.type.startsWith('image/'),
+        });
+    });
+
+    addForm.attachments = [...addForm.attachments, ...filesArray];
+
+    input.value = '';
+}
+
+function removeAddAttachment(index: number) {
+    const att = newAddAttachments.value[index];
+    if (!att) return;
+
+    URL.revokeObjectURL(att.url);
+    newAddAttachments.value.splice(index, 1);
+
+    addForm.attachments = addForm.attachments.filter((f) => f !== att.file);
+}
+
+function handleUpdateFiles(e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    if (!input.files) return;
+
+    const filesArray = Array.from(input.files);
+
+    filesArray.forEach((file) => {
+        updateAttachments.value.push({
+            file,
+            url: URL.createObjectURL(file),
+            isImage: file.type.startsWith('image/'),
+        });
+    });
+
+    updateForm.attachments = [...updateForm.attachments, ...filesArray];
+
+    input.value = '';
+}
+
+function removeNewAttachment(index: number) {
+    const att = updateAttachments.value[index];
+    if (!att) return;
+
+    URL.revokeObjectURL(att.url);
+    updateAttachments.value.splice(index, 1);
+
+    updateForm.attachments = updateForm.attachments.filter(
+        (f) => f !== att.file,
+    );
+}
+
+function deleteExistingAttachment(id: number) {
+    if (!currentTask.value) return;
+
+    if (!updateForm.deleted_attachments.includes(id)) {
+        updateForm.deleted_attachments.push(id);
+    }
+
+    currentTask.value.attachments = currentTask.value.attachments.filter(
+        (a) => a.id !== id,
+    );
 }
 
 function formatSize(size: number) {
@@ -131,25 +236,61 @@ function formatSize(size: number) {
                 </button>
             </div>
 
-            <div class="space-y-12">
-                <!-- Loop through statuses -->
-                <div v-for="(tasks, status) in groupedTasks" :key="status">
-                    <h2
-                        class="mb-4 text-xl font-bold"
-                        :class="{
-                            'text-green-600': status === 'pending',
-                            'text-green-700': status === 'ongoing',
-                            'text-green-800': status === 'completed',
-                            'text-gray-900': status === 'cancelled',
-                        }"
-                    >
-                        {{ status.charAt(0).toUpperCase() + status.slice(1) }}
-                        ({{ tasks.length }})
+            <div class="flex grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <h2 class="mb-4 text-xl font-bold text-green-700">
+                        Pending ({{ groupedTasks.pending.length || 0 }})
                     </h2>
 
-                    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div class="space-y-6">
                         <TaskCard
-                            v-for="task in tasks"
+                            v-for="task in groupedTasks.pending"
+                            :key="task.id"
+                            :task="task"
+                            @click="openTask(task)"
+                        >
+                            <template #actions>
+                                <button
+                                    @click.stop="handleUpdate(task)"
+                                    class="cursor-pointer rounded-full p-1 text-xl hover:bg-green-200"
+                                >
+                                    ✎
+                                </button>
+                            </template>
+                        </TaskCard>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="mb-4 text-xl font-bold text-green-800">
+                        Ongoing ({{ groupedTasks.ongoing.length || 0 }})
+                    </h2>
+
+                    <div class="space-y-6">
+                        <TaskCard
+                            v-for="task in groupedTasks.ongoing"
+                            :key="task.id"
+                            :task="task"
+                            @click="openTask(task)"
+                        >
+                            <template #actions>
+                                <button
+                                    @click.stop="handleUpdate(task)"
+                                    class="cursor-pointer rounded-full p-1 text-xl hover:bg-green-200"
+                                >
+                                    ✎
+                                </button>
+                            </template>
+                        </TaskCard>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="mb-4 text-xl font-bold text-green-900">
+                        Completed ({{ groupedTasks.completed.length || 0 }})
+                    </h2>
+
+                    <div class="space-y-6">
+                        <TaskCard
+                            v-for="task in groupedTasks.completed"
                             :key="task.id"
                             :task="task"
                             @click="openTask(task)"
@@ -162,6 +303,29 @@ function formatSize(size: number) {
                                             handleUpdate(task);
                                         }
                                     "
+                                    class="cursor-pointer rounded-full p-1 text-xl hover:bg-green-200"
+                                >
+                                    ✎
+                                </button>
+                            </template>
+                        </TaskCard>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="mb-4 text-xl font-bold text-gray-700">
+                        Cancelled ({{ groupedTasks.cancelled.length || 0 }})
+                    </h2>
+
+                    <div class="space-y-6">
+                        <TaskCard
+                            v-for="task in groupedTasks.cancelled"
+                            :key="task.id"
+                            :task="task"
+                            @click="openTask(task)"
+                        >
+                            <template #actions>
+                                <button
+                                    @click.stop="handleUpdate(task)"
                                     class="cursor-pointer rounded-full p-1 text-xl hover:bg-green-200"
                                 >
                                     ✎
@@ -273,17 +437,35 @@ function formatSize(size: number) {
                     </p>
 
                     <!-- Preview selected files -->
-                    <ul
-                        v-if="addForm.attachments.length"
-                        class="mt-2 list-inside list-disc text-sm text-gray-800"
+                    <div
+                        v-if="newAddAttachments.length"
+                        class="mt-2 grid grid-cols-3 gap-2"
                     >
-                        <li
-                            v-for="(file, index) in addForm.attachments"
-                            :key="index"
+                        <div
+                            v-for="(att, i) in newAddAttachments"
+                            :key="i"
+                            class="relative rounded border border-gray-300 p-1"
                         >
-                            {{ file.name }}
-                        </li>
-                    </ul>
+                            <img
+                                v-if="att.isImage"
+                                :src="att.url"
+                                class="h-24 w-full rounded object-cover"
+                            />
+                            <span
+                                v-else
+                                class="block h-24 w-full overflow-hidden p-1 text-xs wrap-break-word"
+                            >
+                                {{ att.file.name }}
+                            </span>
+                            <button
+                                type="button"
+                                @click="removeAddAttachment(i)"
+                                class="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Deadline -->
@@ -341,13 +523,14 @@ function formatSize(size: number) {
                     </button>
                     <button
                         @click="addTaskModal = false"
-                        class="cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-4 py-2 hover:scale-102 hover:bg-gray-200"
+                        class="cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-4 py-2 hover:bg-gray-200"
                     >
                         Cancel
                     </button>
                 </div>
             </form>
         </Modal>
+
         <Modal v-model="updateTaskModal">
             <template #title> Update Task </template>
             <form @submit.prevent="submitUpdate" class="space-y-4">
@@ -423,6 +606,88 @@ function formatSize(size: number) {
                     >
                         {{ updateForm.errors.description }}
                     </p>
+                </div>
+
+                <!-- Attachments -->
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-900"
+                        >Attachments</label
+                    >
+                    <input
+                        type="file"
+                        multiple
+                        accept=".jpg,.jpeg,.png,.pdf,.docx"
+                        @change="handleUpdateFiles"
+                        class="w-full rounded-md border border-gray-500 p-2"
+                    />
+                    <h3
+                        v-if="currentTask?.attachments?.length"
+                        class="mt-3 text-sm font-medium"
+                    >
+                        Existing Attachments
+                    </h3>
+                    <div
+                        v-if="currentTask?.attachments?.length"
+                        class="mt-2 grid grid-cols-3 gap-2"
+                    >
+                        <div
+                            v-for="att in currentTask.attachments"
+                            :key="att.id"
+                            class="relative rounded border border-gray-300 p-1"
+                        >
+                            <img
+                                v-if="att.mimetype.startsWith('image/')"
+                                :src="att.filepath"
+                                class="h-24 w-full rounded object-cover"
+                            />
+                            <span
+                                v-else
+                                class="block w-full truncate text-sm"
+                                >{{ att.filename }}</span
+                            >
+                            <button
+                                class="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white"
+                                type="button"
+                                @click="deleteExistingAttachment(att.id)"
+                            >
+                                x
+                            </button>
+                        </div>
+                    </div>
+                    <h3
+                        v-if="updateAttachments.length"
+                        class="mt-3 text-sm font-medium"
+                    >
+                        New Attachments
+                    </h3>
+                    <div
+                        v-if="updateAttachments.length"
+                        class="mt-2 grid grid-cols-3 gap-2"
+                    >
+                        <div
+                            v-for="(att, i) in updateAttachments"
+                            :key="i"
+                            class="relative rounded border border-gray-300 p-1"
+                        >
+                            <img
+                                v-if="att.isImage"
+                                :src="att.url"
+                                class="h-24 w-full rounded object-cover"
+                            />
+                            <span
+                                v-else
+                                class="block w-full truncate text-sm"
+                                >{{ att.file.name }}</span
+                            >
+                            <button
+                                type="button"
+                                class="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white"
+                                @click="removeNewAttachment(i)"
+                            >
+                                x
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Deadline -->
@@ -510,7 +775,7 @@ function formatSize(size: number) {
                                 updateForm.reset();
                             }
                         "
-                        class="cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-4 py-2 hover:scale-102 hover:bg-gray-200"
+                        class="cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-4 py-2 hover:bg-gray-200"
                     >
                         Cancel
                     </button>
@@ -599,11 +864,13 @@ function formatSize(size: number) {
                             v-if="att.mimetype === 'image/jpeg'"
                             :src="att.filepath"
                             :alt="att.filename"
+                            class="h-auto w-full"
                         />
                         <iframe
                             v-else-if="att.mimetype === 'application/pdf'"
                             :src="att.filepath"
                             frameborder="0"
+                            class="w-full"
                         ></iframe>
                         <a v-else :href="att.filepath"> {{ att.filename }}</a>
                         <span class="text-xs text-gray-400"
@@ -621,7 +888,7 @@ function formatSize(size: number) {
                             openTaskModal = false;
                         }
                     "
-                    class="cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-4 py-2 hover:scale-102 hover:bg-gray-200"
+                    class="cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-4 py-2 hover:bg-gray-200"
                 >
                     Close
                 </button>

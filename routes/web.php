@@ -22,7 +22,7 @@ Route::get('/about', function (){
 Route::middleware('auth')->group(function() {
     Route::get('/tasks', [TaskController::class, 'index'])->middleware('role:admin')->name('tasks.index');
     Route::post('/tasks', [TaskController::class, 'store'])->middleware('role:admin')->name('task.store');
-    Route::put('/tasks/{task}/admin', [TaskController::class, 'update'])->middleware('role:admin')->name('task.update');
+    Route::post('/tasks/{task}/admin', [TaskController::class, 'update'])->middleware('role:admin')->name('task.update');
 
     Route::get('/tasks/{user}', [TaskController::class, 'userTask'])->name('tasks.userTask');
     Route::post('/tasks/{user}', [TaskController::class, 'userStore'])->name('tasks.userStore');

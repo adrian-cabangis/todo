@@ -7,6 +7,8 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -111,10 +113,44 @@ class TaskController extends Controller
             'status' => 'nullable|in:pending,ongoing,completed,cancelled',
             'priority' => 'nullable|in:low,medium,high',
             'user_id' => 'nullable|exists:users,id', 
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,docx|max:5120',
+            'deleted_attachments' => 'nullable|array',
+            'deleted_attachments.*' => 'exists:attachments,id'
         ]);
 
-        $task->update($data);
+        try {
+            DB::transaction(function () use ($request, $task, $data) {
 
+            $task->update($data);
+
+            if (!empty($request->deleted_attachments)) {
+                $task->attachments()
+                    ->whereIn('id', $request->deleted_attachments)
+                    ->each(function ($attachment) {
+                        Storage::disk('public')->delete($attachment->filepath);
+                        $attachment->delete();
+                    });
+            }
+
+            // Handle new uploaded attachments
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('attachments', 'public');
+                    $task->attachments()->create([
+                        'filename' => $file->getClientOriginalName(),
+                        'filepath' => $path,
+                        'mimetype' => $file->getClientMimeType(),
+                        'size' => $file->getSize(),
+                    ]);
+                }
+            }
+        });
+
+        } catch (\Throwable $th) {
+            Log::error($th);
+        }
+
+        
         return redirect()->route('tasks.index')
             ->with('success', 'Task updated successfully.');
     }

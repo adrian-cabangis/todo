@@ -82,7 +82,7 @@ const handleUpdate = (task: Task) => {
 const submitUpdate = () => {
     if (!currentTask.value) return;
 
-    updateForm.put(`/tasks/${currentTask.value.id}/admin`, {
+    updateForm.put(`/tasks/${currentTask.value.id}`, {
         onSuccess: () => {
             updateTaskModal.value = false;
             currentTask.value = null;
@@ -135,25 +135,61 @@ function formatSize(size: number) {
                 </button>
             </div>
 
-            <div class="space-y-12">
-                <!-- Loop through statuses -->
-                <div v-for="(tasks, status) in groupedTasks" :key="status">
-                    <h2
-                        class="mb-4 text-xl font-bold"
-                        :class="{
-                            'text-green-600': status === 'pending',
-                            'text-green-700': status === 'ongoing',
-                            'text-green-800': status === 'completed',
-                            'text-gray-900': status === 'cancelled',
-                        }"
-                    >
-                        {{ status.charAt(0).toUpperCase() + status.slice(1) }}
-                        ({{ tasks.length }})
+            <div class="flex grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <h2 class="mb-4 text-xl font-bold text-green-700">
+                        Pending ({{ groupedTasks.pending.length || 0 }})
                     </h2>
 
-                    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div class="space-y-6">
                         <TaskCard
-                            v-for="task in tasks"
+                            v-for="task in groupedTasks.pending"
+                            :key="task.id"
+                            :task="task"
+                            @click="openTask(task)"
+                        >
+                            <template #actions>
+                                <button
+                                    @click.stop="handleUpdate(task)"
+                                    class="cursor-pointer rounded-full p-1 text-xl hover:bg-green-200"
+                                >
+                                    ✎
+                                </button>
+                            </template>
+                        </TaskCard>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="mb-4 text-xl font-bold text-green-800">
+                        Ongoing ({{ groupedTasks.ongoing.length || 0 }})
+                    </h2>
+
+                    <div class="space-y-6">
+                        <TaskCard
+                            v-for="task in groupedTasks.ongoing"
+                            :key="task.id"
+                            :task="task"
+                            @click="openTask(task)"
+                        >
+                            <template #actions>
+                                <button
+                                    @click.stop="handleUpdate(task)"
+                                    class="cursor-pointer rounded-full p-1 text-xl hover:bg-green-200"
+                                >
+                                    ✎
+                                </button>
+                            </template>
+                        </TaskCard>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="mb-4 text-xl font-bold text-green-900">
+                        Completed ({{ groupedTasks.completed.length || 0 }})
+                    </h2>
+
+                    <div class="space-y-6">
+                        <TaskCard
+                            v-for="task in groupedTasks.completed"
                             :key="task.id"
                             :task="task"
                             @click="openTask(task)"
@@ -166,6 +202,29 @@ function formatSize(size: number) {
                                             handleUpdate(task);
                                         }
                                     "
+                                    class="cursor-pointer rounded-full p-1 text-xl hover:bg-green-200"
+                                >
+                                    ✎
+                                </button>
+                            </template>
+                        </TaskCard>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="mb-4 text-xl font-bold text-gray-700">
+                        Cancelled ({{ groupedTasks.cancelled.length || 0 }})
+                    </h2>
+
+                    <div class="space-y-6">
+                        <TaskCard
+                            v-for="task in groupedTasks.cancelled"
+                            :key="task.id"
+                            :task="task"
+                            @click="openTask(task)"
+                        >
+                            <template #actions>
+                                <button
+                                    @click.stop="handleUpdate(task)"
                                     class="cursor-pointer rounded-full p-1 text-xl hover:bg-green-200"
                                 >
                                     ✎

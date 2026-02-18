@@ -13,7 +13,7 @@ function close() {
     <Teleport to="body">
         <div
             v-if="modelValue"
-            class="fixed inset-0 z-50 flex items-center justify-center border border-green-200"
+            class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
         >
             <!-- Overlay -->
             <div
@@ -23,11 +23,11 @@ function close() {
 
             <!-- Modal Content -->
             <div
-                class="relative z-50 w-full max-w-xl rounded-2xl bg-gray-100 p-7 shadow-2xl"
+                class="relative z-50 flex max-h-[90vh] w-full max-w-xl flex-col rounded-2xl bg-gray-100 shadow-2xl"
             >
                 <!-- Header -->
                 <div
-                    class="mb-4 flex items-center justify-between border-b border-gray-400 pb-4"
+                    class="flex items-center justify-between border-b border-gray-400 p-6"
                 >
                     <h2 class="text-xl font-semibold text-gray-900">
                         <slot name="title">Modal Title</slot>
@@ -40,11 +40,9 @@ function close() {
                     </button>
                 </div>
 
-                <!-- Body -->
-                <div class="space-y-4 text-gray-900">
-                    <slot>
-                        <!-- Default content goes here -->
-                    </slot>
+                <!-- Scrollable Body -->
+                <div class="flex-1 space-y-4 overflow-y-auto p-6 text-gray-900">
+                    <slot />
                 </div>
             </div>
         </div>
